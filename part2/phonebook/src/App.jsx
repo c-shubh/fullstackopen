@@ -1,34 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useState } from "react";
+import ContactsDisplay from "./components/ContactsDisplay";
+import PersonForm from "./components/PersonForm";
+import Search from "./components/Search";
 
-function App() {
-  const [count, setCount] = useState(0)
+const sampleData = [
+  { id: crypto.randomUUID(), name: "Alan Turing", number: "414-379-2649" },
+  { id: crypto.randomUUID(), name: "Steve Wozniak", number: "409-978-4352" },
+  { id: crypto.randomUUID(), name: "Tim Berners-Lee", number: "617-957-0662" },
+  { id: crypto.randomUUID(), name: "Charles Babbage", number: "828-209-0165" },
+  { id: crypto.randomUUID(), name: "Grace Hopper", number: "540-217-4858" },
+];
+
+const App = () => {
+  const [persons, setPersons] = useState(sampleData);
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div>
+      <h1>Phonebook</h1>
+      <Search persons={persons} />
+      <PersonForm persons={persons} setPersons={setPersons} />
+      <ContactsDisplay persons={persons} heading="Numbers" />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
