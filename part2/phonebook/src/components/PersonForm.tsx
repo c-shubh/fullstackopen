@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import type { FormEvent } from "react";
 import { ChangeEvent, useState } from "react";
 import personsService from "../services/persons";
@@ -73,10 +74,16 @@ export default function PersonForm({
         });
       } catch (error) {
         console.error(error);
-        setNotification({
-          message: `Failed to update contact: ${newName}`,
-          type: "failure",
-        });
+        if ((error as AxiosError).response?.status === 404)
+          setNotification({
+            message: `Information of ${newName} has already been removed from server`,
+            type: "failure",
+          });
+        else
+          setNotification({
+            message: `Failed to update contact: ${newName}`,
+            type: "failure",
+          });
       }
     }
 
