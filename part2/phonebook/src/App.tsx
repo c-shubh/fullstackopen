@@ -15,9 +15,13 @@ const App = () => {
   return (
     <div>
       <h1>Phonebook</h1>
-      <Search persons={persons} />
+      <Search persons={persons} setPersons={setPersons} />
       <PersonForm persons={persons} setPersons={setPersons} />
-      <ContactsDisplay persons={persons} heading="Numbers" />
+      <ContactsDisplay
+        heading="Numbers"
+        persons={persons}
+        setPersons={setPersons}
+      />
     </div>
   );
 };

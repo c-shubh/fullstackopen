@@ -1,8 +1,8 @@
 import Fuse from "fuse.js";
-import { Person } from "../types";
-import { useState } from "react";
-import ContactsDisplay from "./ContactsDisplay";
 import type { ChangeEvent } from "react";
+import { useState } from "react";
+import { Person } from "../types";
+import ContactsDisplay from "./ContactsDisplay";
 
 const fuse = new Fuse([], {
   keys: ["name"],
@@ -10,9 +10,10 @@ const fuse = new Fuse([], {
 
 interface SearchProps {
   persons: Person[];
+  setPersons: React.Dispatch<React.SetStateAction<Person[]>>;
 }
 
-const Search = ({ persons }: SearchProps) => {
+const Search = ({ persons, setPersons }: SearchProps) => {
   const [filterStr, setFilterStr] = useState("");
   fuse.setCollection(persons as any);
 
@@ -32,6 +33,7 @@ const Search = ({ persons }: SearchProps) => {
       </div>
       <ContactsDisplay
         persons={fuse.search(filterStr).map((res) => res.item)}
+        setPersons={setPersons}
       />
     </div>
   );
