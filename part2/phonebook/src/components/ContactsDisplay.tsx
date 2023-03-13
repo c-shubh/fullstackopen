@@ -1,4 +1,11 @@
-const ContactsDisplay = ({ persons, heading }) => {
+import { Person } from "../types";
+
+interface ContactsDisplayProps {
+  persons: Person[];
+  heading?: string;
+}
+
+const ContactsDisplay = ({ persons, heading }: ContactsDisplayProps) => {
   return (
     <div>
       {heading ? <h2>{heading}</h2> : <></>}

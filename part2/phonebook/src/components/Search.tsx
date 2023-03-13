@@ -1,16 +1,23 @@
 import Fuse from "fuse.js";
+import { Person } from "../types";
 import { useState } from "react";
 import ContactsDisplay from "./ContactsDisplay";
+import type { ChangeEvent } from "react";
 
 const fuse = new Fuse([], {
   keys: ["name"],
 });
 
-const Search = ({ persons }) => {
-  const [filterStr, setFilterStr] = useState("");
-  fuse.setCollection(persons);
+interface SearchProps {
+  persons: Person[];
+}
 
-  const handleFilterStrChange = (e) => setFilterStr(e.target.value);
+const Search = ({ persons }: SearchProps) => {
+  const [filterStr, setFilterStr] = useState("");
+  fuse.setCollection(persons as any);
+
+  const handleFilterStrChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setFilterStr(e.target.value);
 
   return (
     <div>
