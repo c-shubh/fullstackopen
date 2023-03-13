@@ -1,18 +1,17 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import ContactsDisplay from "./components/ContactsDisplay";
 import PersonForm from "./components/PersonForm";
 import Search from "./components/Search";
 
-const sampleData = [
-  { id: crypto.randomUUID(), name: "Alan Turing", number: "414-379-2649" },
-  { id: crypto.randomUUID(), name: "Steve Wozniak", number: "409-978-4352" },
-  { id: crypto.randomUUID(), name: "Tim Berners-Lee", number: "617-957-0662" },
-  { id: crypto.randomUUID(), name: "Charles Babbage", number: "828-209-0165" },
-  { id: crypto.randomUUID(), name: "Grace Hopper", number: "540-217-4858" },
-];
-
 const App = () => {
-  const [persons, setPersons] = useState(sampleData);
+  const [persons, setPersons] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/persons`)
+      .then((res) => setPersons(res.data));
+  }, []);
 
   return (
     <div>

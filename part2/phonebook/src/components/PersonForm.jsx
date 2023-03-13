@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState } from "react";
 
 const PersonForm = ({ persons, setPersons }) => {
@@ -6,7 +7,6 @@ const PersonForm = ({ persons, setPersons }) => {
 
   const handleNameChange = (e) => setNewName(e.target.value);
   const handleNumberChange = (e) => setNewNumber(e.target.value);
-
   const handleFormSubmit = (e) => {
     e.preventDefault();
 
@@ -16,10 +16,18 @@ const PersonForm = ({ persons, setPersons }) => {
         : true;
     if (isDuplicatePerson) alert(`${newName} is already added to phonebook`);
     else {
-      setPersons([
-        ...persons,
-        { id: crypto.randomUUID(), name: newName, number: newNumber },
-      ]);
+      // store this person
+
+      // to db
+      axios
+        .post(`${import.meta.env.VITE_API_URL}/persons`, {
+          name: newName,
+          number: newNumber,
+        })
+        .then((res) => {
+          // in frontend
+          setPersons([...persons, res.data]);
+        });
     }
 
     // clear input values
