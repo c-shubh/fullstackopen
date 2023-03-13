@@ -23,15 +23,29 @@ const PersonForm = ({ persons, setPersons }: PersonFormProps) => {
   const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const isDuplicatePerson =
-      persons.findIndex((person) => person.name === newName) === -1
-        ? false
-        : true;
-    if (isDuplicatePerson) alert(`${newName} is already added to phonebook`);
-    else {
+    const personIdx = persons.findIndex((person) => person.name === newName);
+    if (personIdx === -1) {
       personsService
         .create({ name: newName, number: newNumber })
         .then((res) => setPersons([...persons, res]));
+    } else if (
+      window.confirm(
+        `${newName} is already added to phonebook, replace the old number with a new one?`
+      )
+    ) {
+      const existingPerson = persons[personIdx];
+      personsService
+        .update(existingPerson.id, {
+          name: existingPerson.name,
+          number: newNumber,
+        })
+        .then((res) => {
+          setPersons([
+            ...persons.slice(0, personIdx),
+            res,
+            ...persons.slice(personIdx + 1),
+          ]);
+        });
     }
 
     // clear input values
