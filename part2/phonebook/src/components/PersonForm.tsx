@@ -1,14 +1,19 @@
 import type { FormEvent } from "react";
 import { ChangeEvent, useState } from "react";
 import personsService from "../services/persons";
-import { Person } from "../types";
+import { NotificationType, Person } from "../types";
 
 interface PersonFormProps {
   persons: Person[];
   setPersons: React.Dispatch<React.SetStateAction<Person[]>>;
+  setNotification: React.Dispatch<React.SetStateAction<NotificationType>>;
 }
 
-const PersonForm = ({ persons, setPersons }: PersonFormProps) => {
+export default function PersonForm({
+  persons,
+  setPersons,
+  setNotification,
+}: PersonFormProps) {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
 
@@ -20,32 +25,59 @@ const PersonForm = ({ persons, setPersons }: PersonFormProps) => {
     setNewNumber(e.target.value);
   };
 
-  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const personIdx = persons.findIndex((person) => person.name === newName);
     if (personIdx === -1) {
-      personsService
-        .create({ name: newName, number: newNumber })
-        .then((res) => setPersons([...persons, res]));
+      try {
+        const newPerson: Person = await personsService.create({
+          name: newName,
+          number: newNumber,
+        });
+
+        setPersons([...persons, newPerson]);
+
+        setNotification({
+          message: `Added ${newPerson.name}`,
+          type: "success",
+        });
+      } catch (error) {
+        console.error(error);
+        setNotification({
+          message: `Failed to add contact: ${newName}`,
+          type: "failure",
+        });
+      }
     } else if (
       window.confirm(
         `${newName} is already added to phonebook, replace the old number with a new one?`
       )
     ) {
       const existingPerson = persons[personIdx];
-      personsService
-        .update(existingPerson.id, {
+      try {
+        const updatedPerson = await personsService.update(existingPerson.id, {
           name: existingPerson.name,
           number: newNumber,
-        })
-        .then((res) => {
-          setPersons([
-            ...persons.slice(0, personIdx),
-            res,
-            ...persons.slice(personIdx + 1),
-          ]);
         });
+
+        setPersons([
+          ...persons.slice(0, personIdx),
+          updatedPerson,
+          ...persons.slice(personIdx + 1),
+        ]);
+
+        setNotification({
+          message: `Updated ${updatedPerson.name}`,
+          type: "success",
+        });
+      } catch (error) {
+        console.error(error);
+        setNotification({
+          message: `Failed to update contact: ${newName}`,
+          type: "failure",
+        });
+      }
     }
 
     // clear input values
@@ -91,6 +123,4 @@ const PersonForm = ({ persons, setPersons }: PersonFormProps) => {
       </form>
     </div>
   );
-};
-
-export default PersonForm;
+}

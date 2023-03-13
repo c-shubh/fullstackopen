@@ -1,22 +1,33 @@
 import personsService from "../services/persons";
-import { Person } from "../types";
+import { NotificationType, Person } from "../types";
 
 interface ContactsDisplayProps {
   heading?: string;
   persons: Person[];
   setPersons: React.Dispatch<React.SetStateAction<Person[]>>;
+  setNotification: React.Dispatch<React.SetStateAction<NotificationType>>;
 }
 
 const ContactsDisplay = ({
   heading,
   persons,
   setPersons,
+  setNotification,
 }: ContactsDisplayProps) => {
   const handleContactDelete = (id: Person["id"], name: Person["name"]) => {
     if (window.confirm(`Delete ${name} ?`))
-      personsService.delete_(id).then(() => {
-        setPersons(persons.filter((person) => person.id !== id));
-      });
+      personsService
+        .delete_(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch((error) => {
+          console.error(error);
+          setNotification({
+            message: `Failed to delete contact: ${name}`,
+            type: "failure",
+          });
+        });
   };
 
   return (

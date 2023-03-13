@@ -3,3 +3,8 @@ export interface Person {
   name: string;
   number: string;
 }
+
+export interface NotificationType {
+  message: string;
+  type: "success" | "failure";
+}

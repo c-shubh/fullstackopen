@@ -2,3 +2,22 @@ ul {
   list-style-type: none;
   padding: 0;
 }
+
+.hidden {
+  display: none;
+}
+
+.notification {
+  padding: 1em;
+  border: 1px solid;
+  margin-bottom: 1em;
+  border-radius: 5px;
+}
+
+.failure {
+  background-color: #e84d4a;
+}
+
+.success {
+  background-color: #9ccc66;
+}
