@@ -1,16 +1,15 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import ContactsDisplay from "./components/ContactsDisplay";
 import PersonForm from "./components/PersonForm";
 import Search from "./components/Search";
+import personsService from "./services/persons";
+import { Person } from "./types";
 
 const App = () => {
-  const [persons, setPersons] = useState([]);
+  const [persons, setPersons] = useState<Person[]>([]);
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/persons`)
-      .then((res) => setPersons(res.data));
+    personsService.getAll().then((res) => setPersons(res));
   }, []);
 
   return (

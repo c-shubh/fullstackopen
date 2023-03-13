@@ -1,13 +1,26 @@
-import axios from "axios";
-import { useState } from "react";
+import type { FormEvent } from "react";
+import { ChangeEvent, useState } from "react";
+import personsService from "../services/persons";
+import { Person } from "../types";
 
-const PersonForm = ({ persons, setPersons }) => {
+interface PersonFormProps {
+  persons: Person[];
+  setPersons: React.Dispatch<React.SetStateAction<Person[]>>;
+}
+
+const PersonForm = ({ persons, setPersons }: PersonFormProps) => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
 
-  const handleNameChange = (e) => setNewName(e.target.value);
-  const handleNumberChange = (e) => setNewNumber(e.target.value);
-  const handleFormSubmit = (e) => {
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setNewName(e.target.value);
+  };
+
+  const handleNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setNewNumber(e.target.value);
+  };
+
+  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const isDuplicatePerson =
@@ -16,25 +29,16 @@ const PersonForm = ({ persons, setPersons }) => {
         : true;
     if (isDuplicatePerson) alert(`${newName} is already added to phonebook`);
     else {
-      // store this person
-
-      // to db
-      axios
-        .post(`${import.meta.env.VITE_API_URL}/persons`, {
-          name: newName,
-          number: newNumber,
-        })
-        .then((res) => {
-          // in frontend
-          setPersons([...persons, res.data]);
-        });
+      personsService
+        .create({ name: newName, number: newNumber })
+        .then((res) => setPersons([...persons, res]));
     }
 
     // clear input values
     setNewName("");
     setNewNumber("");
 
-    e.target.name.focus();
+    (e.target as any).name.focus();
   };
 
   return (
@@ -61,6 +65,7 @@ const PersonForm = ({ persons, setPersons }) => {
               onChange={handleNumberChange}
               value={newNumber}
               placeholder="xxx-xxx-xxxx"
+              maxLength={12}
               pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
               required
             />
