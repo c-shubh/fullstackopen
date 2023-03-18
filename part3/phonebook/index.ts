@@ -2,7 +2,7 @@ import express from "express";
 import { Person } from "./types";
 const app = express();
 
-const persons: Person[] = [
+let persons: Person[] = [
   {
     id: 1,
     name: "Arto Hellas",
@@ -47,6 +47,21 @@ app.get("/api/persons/:id", (req, res) => {
       .status(404)
       .json({ error: `Person with id ${id} does not exist` });
   }
+});
+
+app.delete("/api/persons/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.sendStatus(400);
+  }
+
+  const modifiedPersons = persons.filter((person) => person.id !== id);
+  // nothing was deleted!
+  if (persons.length === modifiedPersons.length) {
+    return res.sendStatus(404); // item to be deleted was **not found**
+  }
+  persons = modifiedPersons;
+  return res.sendStatus(204);
 });
 
 app.get("/info", (req, res) => {
