@@ -1,5 +1,5 @@
 import express from "express";
-import { Person } from "./types";
+import { PersonSchema, type Person } from "./types";
 const app = express();
 app.use(express.json());
 
@@ -39,7 +39,25 @@ app.get("/api/persons", (req, res) => {
 });
 
 app.post("/api/persons", (req, res) => {
-  const { name, number } = req.body;
+  /* validation */
+  const validationResult = PersonSchema.validate(req.body);
+  if (validationResult.error) {
+    return res
+      .status(422)
+      .json({ error: validationResult.error.details[0].message });
+  }
+
+  /* duplicate name check */
+  const name: string = req.body.name;
+  const number: string = req.body.number;
+  const duplicateName = persons.find(
+    (person) => person.name.toLowerCase() === name.toLowerCase()
+  );
+  if (duplicateName) {
+    return res.status(422).json({ error: '"name" must be unique' });
+  }
+
+  /* user sent data is valid */
   const newPerson: Person = {
     id: generateID(),
     name,
