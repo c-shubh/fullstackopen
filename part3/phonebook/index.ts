@@ -1,7 +1,8 @@
 import express from "express";
+import { Person } from "./types";
 const app = express();
 
-const persons = [
+const persons: Person[] = [
   {
     id: 1,
     name: "Arto Hellas",
@@ -30,6 +31,22 @@ app.get("/", (req, res) => {
 
 app.get("/api/persons", (req, res) => {
   res.json(persons);
+});
+
+app.get("/api/persons/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.sendStatus(400);
+  }
+
+  const found = persons.find((person) => person.id === id);
+  if (found) {
+    return res.json(found);
+  } else {
+    return res
+      .status(404)
+      .json({ error: `Person with id ${id} does not exist` });
+  }
 });
 
 app.get("/info", (req, res) => {
