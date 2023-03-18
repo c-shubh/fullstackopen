@@ -1,6 +1,8 @@
 import express from "express";
+import morgan from "morgan";
 import { PersonSchema, type Person } from "./types";
 const app = express();
+app.use(morgan("tiny"));
 app.use(express.json());
 
 function generateID() {
