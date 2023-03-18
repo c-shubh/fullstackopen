@@ -1,6 +1,11 @@
 import express from "express";
 import { Person } from "./types";
 const app = express();
+app.use(express.json());
+
+function generateID() {
+  return Date.now();
+}
 
 let persons: Person[] = [
   {
@@ -31,6 +36,17 @@ app.get("/", (req, res) => {
 
 app.get("/api/persons", (req, res) => {
   res.json(persons);
+});
+
+app.post("/api/persons", (req, res) => {
+  const { name, number } = req.body;
+  const newPerson: Person = {
+    id: generateID(),
+    name,
+    number,
+  };
+  persons.push(newPerson);
+  res.json(newPerson);
 });
 
 app.get("/api/persons/:id", (req, res) => {
