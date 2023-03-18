@@ -10,4 +10,7 @@ export interface Country {
   flags: {
     svg: string;
   };
+  capitalInfo: {
+    latlng: [number, number];
+  };
 }
