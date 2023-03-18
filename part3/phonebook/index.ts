@@ -2,8 +2,29 @@ import express from "express";
 import morgan from "morgan";
 import { PersonSchema, type Person } from "./types";
 const app = express();
-app.use(morgan("tiny"));
+
 app.use(express.json());
+
+app.use(
+  morgan(function (tokens, req, res) {
+    // tiny format:
+    // :method :url :status :res[content-length] - :response-time ms
+    const msg = [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, "content-length"),
+      "-",
+      tokens["response-time"](req, res),
+      "ms",
+    ];
+    if (req.method === "POST") {
+      // @ts-ignore
+      msg.push(JSON.stringify(req.body));
+    }
+    return msg.join(" ");
+  })
+);
 
 function generateID() {
   return Date.now();
