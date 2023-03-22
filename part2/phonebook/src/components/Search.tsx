@@ -1,7 +1,7 @@
 import Fuse from "fuse.js";
 import type { ChangeEvent } from "react";
 import { useState } from "react";
-import { Person } from "../types";
+import { NotificationType, Person } from "../types";
 import ContactsDisplay from "./ContactsDisplay";
 
 const fuse = new Fuse([], {
@@ -11,9 +11,10 @@ const fuse = new Fuse([], {
 interface SearchProps {
   persons: Person[];
   setPersons: React.Dispatch<React.SetStateAction<Person[]>>;
+  setNotification: React.Dispatch<React.SetStateAction<NotificationType>>;
 }
 
-const Search = ({ persons, setPersons }: SearchProps) => {
+const Search = ({ persons, setPersons, setNotification }: SearchProps) => {
   const [filterStr, setFilterStr] = useState("");
   fuse.setCollection(persons as any);
 
@@ -34,6 +35,7 @@ const Search = ({ persons, setPersons }: SearchProps) => {
       <ContactsDisplay
         persons={fuse.search(filterStr).map((res) => res.item)}
         setPersons={setPersons}
+        setNotification={setNotification}
       />
     </div>
   );
