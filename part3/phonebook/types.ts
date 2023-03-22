@@ -6,7 +6,9 @@ export interface Person {
   number: string;
 }
 
-export const PersonSchema = Joi.object<Person>({
+export type PersonNoId = Omit<Person, "id">;
+
+export const PersonSchema = Joi.object<PersonNoId>({
   name: Joi.string().required(),
   number: Joi.string().required(),
 });
