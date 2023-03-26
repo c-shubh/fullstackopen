@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import PersonModel from "./models/person";
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
-import { PersonJoiSchema, type Person } from "./types";
+import PersonModel from "./models/person";
+import { PersonJoiSchema } from "./types";
 const app = express();
 
 app.use(cors());
@@ -32,33 +32,6 @@ app.use(
   })
 );
 
-function generateID() {
-  return Date.now();
-}
-
-let persons: Person[] = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
-
 app.get("/", (req, res) => {
   res.send("Hello world!");
 });
@@ -69,7 +42,7 @@ app.get("/api/persons", (req, res) => {
   });
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", async (req, res) => {
   /* validation */
   const validationResult = PersonJoiSchema.validate(req.body);
   if (validationResult.error) {
@@ -78,24 +51,13 @@ app.post("/api/persons", (req, res) => {
       .json({ error: validationResult.error.details[0].message });
   }
 
-  /* duplicate name check */
+  /* user sent data is valid */
   const name: string = req.body.name;
   const number: string = req.body.number;
-  const duplicateName = persons.find(
-    (person) => person.name.toLowerCase() === name.toLowerCase()
-  );
-  if (duplicateName) {
-    return res.status(422).json({ error: '"name" must be unique' });
-  }
+  const newPerson = new PersonModel({ name, number });
+  const savedPerson = await newPerson.save();
 
-  /* user sent data is valid */
-  const newPerson: Person = {
-    id: generateID(),
-    name,
-    number,
-  };
-  persons.push(newPerson);
-  res.json(newPerson);
+  res.json(savedPerson);
 });
 
 function personNotFound(req: express.Request, res: express.Response) {
@@ -114,19 +76,13 @@ app.get("/api/persons/:id", (req, res) => {
   );
 });
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) {
-    return res.sendStatus(400);
-  }
-
-  const modifiedPersons = persons.filter((person) => person.id !== id);
-  // nothing was deleted!
-  if (persons.length === modifiedPersons.length) {
+app.delete("/api/persons/:id", async (req, res) => {
+  const deletedPerson = await PersonModel.findByIdAndDelete(req.params.id);
+  if (deletedPerson) {
+    return res.sendStatus(204);
+  } else {
     return res.sendStatus(404); // item to be deleted was **not found**
   }
-  persons = modifiedPersons;
-  return res.sendStatus(204);
 });
 
 app.get("/info", (req, res) => {
