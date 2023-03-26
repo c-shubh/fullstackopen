@@ -1,18 +1,6 @@
 import mongoose from "mongoose";
 import type { PersonOmitId } from "../types";
 
-mongoose.set("strictQuery", false);
-const url = process.env.MONGO_URL;
-
-mongoose
-  .connect(url as string)
-  .then((result) => {
-    console.log("connected to MongoDB");
-  })
-  .catch((error) => {
-    console.log("error connecting to MongoDB:", error.message);
-  });
-
 const personSchema = new mongoose.Schema<PersonOmitId>({
   name: String,
   number: String,

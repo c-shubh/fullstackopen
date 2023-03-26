@@ -4,11 +4,13 @@ dotenv.config();
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
+import connectDb from "./connectDb";
 import errorHandler from "./middlewares/errorHandler";
 import unknownEndpoint from "./middlewares/unknownEndpoint";
 import PersonModel from "./models/person";
 import { PersonJoiSchema, PersonPutJoiSchema } from "./validation/JoiSchemas";
 const app = express();
+connectDb();
 
 /* ------------------------------ Middlewares ------------------------------- */
 
