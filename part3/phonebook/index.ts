@@ -4,13 +4,16 @@ dotenv.config();
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
+import errorHandler from "./middlewares/errorHandler";
+import unknownEndpoint from "./middlewares/unknownEndpoint";
 import PersonModel from "./models/person";
 import { PersonJoiSchema } from "./types";
 const app = express();
 
+/* ------------------------------ Middlewares ------------------------------- */
+
 app.use(cors());
 app.use(express.json());
-
 app.use(
   morgan(function (tokens, req, res) {
     // tiny format:
@@ -31,6 +34,8 @@ app.use(
     return msg.join(" ");
   })
 );
+
+/* --------------------------------- Routes --------------------------------- */
 
 app.get("/", (req, res) => {
   res.send("Hello world!");
@@ -60,29 +65,21 @@ app.post("/api/persons", async (req, res) => {
   res.json(savedPerson);
 });
 
-function personNotFound(req: express.Request, res: express.Response) {
-  return res
-    .status(404)
-    .json({ error: `Person with id ${req.params.id} does not exist` });
-}
-
-app.get("/api/persons/:id", (req, res) => {
-  PersonModel.findById(req.params.id).then(
-    (person) => {
+app.get("/api/persons/:id", (req, res, next) => {
+  PersonModel.findById(req.params.id)
+    .then((person) => {
       if (person) return res.json(person);
-      return personNotFound(req, res);
-    },
-    (err) => personNotFound(req, res)
-  );
+      else res.sendStatus(404);
+    })
+    .catch((error) => next(error));
 });
 
-app.delete("/api/persons/:id", async (req, res) => {
-  const deletedPerson = await PersonModel.findByIdAndDelete(req.params.id);
-  if (deletedPerson) {
-    return res.sendStatus(204);
-  } else {
-    return res.sendStatus(404); // item to be deleted was **not found**
-  }
+app.delete("/api/persons/:id", (req, res, next) => {
+  PersonModel.findByIdAndRemove(req.params.id)
+    .then((result) => {
+      return res.sendStatus(204);
+    })
+    .catch((error) => next(error));
 });
 
 app.get("/info", (req, res) => {
@@ -94,6 +91,11 @@ app.get("/info", (req, res) => {
     res.send(str);
   });
 });
+
+/* ----------------------------- Error handlers ----------------------------- */
+
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`App running on port ${PORT}`));
