@@ -7,7 +7,7 @@ import morgan from "morgan";
 import errorHandler from "./middlewares/errorHandler";
 import unknownEndpoint from "./middlewares/unknownEndpoint";
 import PersonModel from "./models/person";
-import { PersonJoiSchema } from "./types";
+import { PersonJoiSchema, PersonPutJoiSchema } from "./validation/JoiSchemas";
 const app = express();
 
 /* ------------------------------ Middlewares ------------------------------- */
@@ -65,11 +65,32 @@ app.post("/api/persons", async (req, res) => {
   res.json(savedPerson);
 });
 
+app.put("/api/persons/:id", (req, res, next) => {
+  /* validation */
+  const validationResult = PersonPutJoiSchema.validate(req.body);
+  if (validationResult.error) {
+    return res
+      .status(422)
+      .json({ error: validationResult.error.details[0].message });
+  }
+
+  const person = {
+    number: req.body.number,
+  };
+
+  PersonModel.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then((updatedPerson) => {
+      if (updatedPerson) return res.json(updatedPerson);
+      return res.sendStatus(404);
+    })
+    .catch((error) => next(error));
+});
+
 app.get("/api/persons/:id", (req, res, next) => {
   PersonModel.findById(req.params.id)
     .then((person) => {
       if (person) return res.json(person);
-      else res.sendStatus(404);
+      else return res.sendStatus(404);
     })
     .catch((error) => next(error));
 });

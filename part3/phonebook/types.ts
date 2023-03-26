@@ -1,5 +1,3 @@
-import Joi from "joi";
-
 export interface Person {
   id: number;
   name: string;
@@ -7,8 +5,3 @@ export interface Person {
 }
 
 export type PersonOmitId = Omit<Person, "id">;
-
-export const PersonJoiSchema = Joi.object<PersonOmitId>({
-  name: Joi.string().required(),
-  number: Joi.string().required(),
-});
