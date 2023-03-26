@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
-import { PersonJoiSchema, type PersonOmitId } from "./types";
+import type { PersonOmitId } from "./types";
+import { PersonJoiSchema } from "./validation/JoiSchemas";
 
 function helpExit() {
   console.log(`
