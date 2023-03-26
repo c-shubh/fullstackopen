@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
-import { PersonSchema, type PersonNoId } from "./types";
+import { PersonJoiSchema, type PersonOmitId } from "./types";
 
 function helpExit() {
   console.log(`
@@ -20,7 +20,7 @@ function connectDB() {
     mongoose.set("strictQuery", false);
     mongoose.connect(url);
 
-    const personSchema = new mongoose.Schema<PersonNoId>({
+    const personSchema = new mongoose.Schema<PersonOmitId>({
       name: String,
       number: String,
     });
@@ -36,7 +36,7 @@ function connectDB() {
 }
 
 function validate(name: string, number: string) {
-  const validationResult = PersonSchema.validate({ name, number });
+  const validationResult = PersonJoiSchema.validate({ name, number });
   if (validationResult.error) {
     console.error(validationResult.error.details[0].message);
     return false;
@@ -44,12 +44,12 @@ function validate(name: string, number: string) {
   return true;
 }
 
-function insertPerson(Person: mongoose.Model<PersonNoId>) {
+function insertPerson(Person: mongoose.Model<PersonOmitId>) {
   const name: string = process.argv[2];
   const number: string = process.argv[3];
 
   if (validate(name, number)) {
-    const person = new Person<PersonNoId>({
+    const person = new Person<PersonOmitId>({
       name,
       number,
     });
@@ -61,7 +61,7 @@ function insertPerson(Person: mongoose.Model<PersonNoId>) {
   }
 }
 
-function printAllPersons(Person: mongoose.Model<PersonNoId>) {
+function printAllPersons(Person: mongoose.Model<PersonOmitId>) {
   Person.find({}).then((persons) => {
     console.log("phonebook:");
     for (const p of persons) {

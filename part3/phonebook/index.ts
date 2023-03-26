@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import PersonModel from "./models/person";
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
-import { PersonSchema, type Person } from "./types";
+import { PersonJoiSchema, type Person } from "./types";
 const app = express();
 
 app.use(cors());
@@ -14,7 +15,7 @@ app.use(
   morgan(function (tokens, req, res) {
     // tiny format:
     // :method :url :status :res[content-length] - :response-time ms
-    const msg = [
+    const msg: any = [
       tokens.method(req, res),
       tokens.url(req, res),
       tokens.status(req, res),
@@ -63,12 +64,14 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  PersonModel.find({}).then((persons) => {
+    res.json(persons);
+  });
 });
 
 app.post("/api/persons", (req, res) => {
   /* validation */
-  const validationResult = PersonSchema.validate(req.body);
+  const validationResult = PersonJoiSchema.validate(req.body);
   if (validationResult.error) {
     return res
       .status(422)
@@ -95,20 +98,20 @@ app.post("/api/persons", (req, res) => {
   res.json(newPerson);
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) {
-    return res.sendStatus(400);
-  }
+function personNotFound(req: express.Request, res: express.Response) {
+  return res
+    .status(404)
+    .json({ error: `Person with id ${req.params.id} does not exist` });
+}
 
-  const found = persons.find((person) => person.id === id);
-  if (found) {
-    return res.json(found);
-  } else {
-    return res
-      .status(404)
-      .json({ error: `Person with id ${id} does not exist` });
-  }
+app.get("/api/persons/:id", (req, res) => {
+  PersonModel.findById(req.params.id).then(
+    (person) => {
+      if (person) return res.json(person);
+      return personNotFound(req, res);
+    },
+    (err) => personNotFound(req, res)
+  );
 });
 
 app.delete("/api/persons/:id", (req, res) => {
@@ -127,11 +130,13 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 
 app.get("/info", (req, res) => {
-  const str =
-    `Phonebook has info for ${persons.length} people` +
-    "<br /><br />" +
-    `${new Date()}`;
-  res.send(str);
+  PersonModel.countDocuments({}).then((count) => {
+    const str =
+      `Phonebook has info for ${count} people` +
+      "<br /><br />" +
+      `${new Date()}`;
+    res.send(str);
+  });
 });
 
 const PORT = process.env.PORT || 3000;
