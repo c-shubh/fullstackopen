@@ -49,7 +49,7 @@ app.get("/api/persons", (req, res) => {
   });
 });
 
-app.post("/api/persons", async (req, res) => {
+app.post("/api/persons", async (req, res, next) => {
   /* validation */
   const validationResult = PersonJoiSchema.validate(req.body);
   if (validationResult.error) {
@@ -61,10 +61,13 @@ app.post("/api/persons", async (req, res) => {
   /* user sent data is valid */
   const name: string = req.body.name;
   const number: string = req.body.number;
-  const newPerson = new PersonModel({ name, number });
-  const savedPerson = await newPerson.save();
-
-  res.json(savedPerson);
+  try {
+    const newPerson = new PersonModel({ name, number });
+    const savedPerson = await newPerson.save();
+    res.json(savedPerson);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.put("/api/persons/:id", (req, res, next) => {

@@ -43,11 +43,18 @@ export default function PersonForm({
           message: `Added ${newPerson.name}`,
           type: "success",
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error(error);
+        let message;
+        // if server provides an error message, then use it
+        if (error?.response?.data?.error) {
+          message = error.response.data.error;
+        } else {
+          message = `Failed to add contact: ${newName}`;
+        }
         setNotification({
-          message: `Failed to add contact: ${newName}`,
           type: "failure",
+          message,
         });
       }
     } else if (

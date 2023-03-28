@@ -1,9 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { SchemaTypes } from "mongoose";
 import type { PersonOmitId } from "../types";
 
 const personSchema = new mongoose.Schema<PersonOmitId>({
-  name: String,
-  number: String,
+  name: {
+    type: SchemaTypes.String,
+    minlength: 3,
+    required: true,
+  },
+  number: {
+    type: SchemaTypes.String,
+    required: true,
+  },
 });
 
 personSchema.set("toJSON", {
