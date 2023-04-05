@@ -20,7 +20,7 @@ app.use(
   morgan(function (tokens, req, res) {
     // tiny format:
     // :method :url :status :res[content-length] - :response-time ms
-    const msg: any = [
+    const msg = [
       tokens.method(req, res),
       tokens.url(req, res),
       tokens.status(req, res),
@@ -30,7 +30,6 @@ app.use(
       "ms",
     ];
     if (req.method === "POST") {
-      // @ts-ignore
       msg.push(JSON.stringify(req.body));
     }
     return msg.join(" ");
@@ -105,7 +104,7 @@ app.get("/api/persons/:id", (req, res, next) => {
 
 app.delete("/api/persons/:id", (req, res, next) => {
   PersonModel.findByIdAndRemove(req.params.id)
-    .then((result) => {
+    .then(() => {
       return res.sendStatus(204);
     })
     .catch((error) => next(error));
