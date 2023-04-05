@@ -79,18 +79,28 @@ export default function PersonForm({
           message: `Updated ${updatedPerson.name}`,
           type: "success",
         });
-      } catch (error) {
+      } catch (err) {
+        let error = err as AxiosError;
         console.error(error);
         if ((error as AxiosError).response?.status === 404)
           setNotification({
             message: `Information of ${newName} has already been removed from server`,
             type: "failure",
           });
-        else
+        else {
+          let error: any;
+          let message;
+          // if server provides an error message, then use it
+          if (error?.response?.data?.error) {
+            message = error.response.data.error;
+          } else {
+            message = `Failed to update contact: ${newName}`;
+          }
           setNotification({
-            message: `Failed to update contact: ${newName}`,
             type: "failure",
+            message,
           });
+        }
       }
     }
 
@@ -124,9 +134,7 @@ export default function PersonForm({
               type="tel"
               onChange={handleNumberChange}
               value={newNumber}
-              placeholder="xxx-xxx-xxxx"
               maxLength={12}
-              pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
               required
             />
           </div>

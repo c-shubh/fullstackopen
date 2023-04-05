@@ -10,6 +10,13 @@ const personSchema = new mongoose.Schema<PersonOmitId>({
   number: {
     type: SchemaTypes.String,
     required: true,
+    minlength: 8,
+    validate: {
+      validator: function(v: string) {
+        return /^\d{8,}|^(\d{2,3}-\d+)$/.test(v);
+      },
+      message: props => `${props.value} is not a valid phone number`
+    }
   },
 });
 
