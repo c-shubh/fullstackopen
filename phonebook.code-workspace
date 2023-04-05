@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"name": "frontend",
+			"path": "part2/phonebook"
+		},
+		{
+			"name": "backend",
+			"path": "part3/phonebook"
+		}
+	]
+}
