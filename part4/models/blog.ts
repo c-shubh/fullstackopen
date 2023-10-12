@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
 
-const blogSchema = new mongoose.Schema({
+export interface BlogT {
+  title: string;
+  author: string;
+  url: string;
+  likes: number;
+}
+
+const blogSchema = new mongoose.Schema<BlogT>({
   title: String,
   author: String,
   url: String,
