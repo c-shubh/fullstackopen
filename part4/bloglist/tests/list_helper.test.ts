@@ -3,7 +3,7 @@ import { BlogT } from "../models/blog";
 import listHelper from "../utils/list_helper";
 
 const noBlogs: BlogT[] = [];
-const listWithOneBlog = [
+const oneBlog = [
   {
     _id: "5a422aa71b54a676234d17f8",
     title: "Go To Statement Considered Harmful",
@@ -78,7 +78,7 @@ describe("total likes", () => {
   });
 
   test("when list has only one blog equals the likes of that", () => {
-    const result = listHelper.totalLikes(listWithOneBlog);
+    const result = listHelper.totalLikes(oneBlog);
     expect(result).toBe(5);
   });
 
@@ -95,12 +95,35 @@ describe("favorite blog", () => {
   });
 
   test("when list has only one blog", () => {
-    const result = listHelper.favoriteBlog(listWithOneBlog);
-    expect(result).toEqual(listWithOneBlog[0]);
+    const result = listHelper.favoriteBlog(oneBlog);
+    expect(result).toEqual(oneBlog[0]);
   });
 
   test("when the list has many blogs", () => {
     const result = listHelper.favoriteBlog(manyBlogs);
     expect(result).toEqual(manyBlogs[2]);
+  });
+});
+
+describe("author with most blogs", () => {
+  test("among no blogs should be undefined", () => {
+    const result = listHelper.mostBlogs(noBlogs);
+    expect(result).toBe(undefined);
+  });
+
+  test("among one blog should be that one blog's author", () => {
+    const result = listHelper.mostBlogs(oneBlog);
+    expect(result).toEqual({
+      author: oneBlog[0].author,
+      blogs: 1,
+    });
+  });
+
+  test("among many blogs", () => {
+    const result = listHelper.mostBlogs(manyBlogs);
+    expect(result).toEqual({
+      author: "Robert C. Martin",
+      blogs: 3,
+    });
   });
 });

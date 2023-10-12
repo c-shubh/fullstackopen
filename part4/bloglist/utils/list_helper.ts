@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { BlogT } from "../models/blog";
 
 const dummy = (blogs: BlogT[]) => {
@@ -21,8 +22,25 @@ const favoriteBlog = (blogs: BlogT[]): BlogT | undefined => {
   return blogs[favIdx];
 };
 
+const mostBlogs = (blogs: BlogT[]) => {
+  console.log(blogs);
+  const result = _.chain(blogs)
+    .countBy((blog) => blog.author)
+    .toPairs()
+    .maxBy((authorBlog) => authorBlog[1])
+    .value();
+
+  if (result === undefined) return undefined;
+
+  return {
+    author: result[0],
+    blogs: result[1],
+  };
+};
+
 export default {
   dummy,
   totalLikes,
   favoriteBlog,
+  mostBlogs,
 };
