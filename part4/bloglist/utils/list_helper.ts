@@ -23,7 +23,6 @@ const favoriteBlog = (blogs: BlogT[]): BlogT | undefined => {
 };
 
 const mostBlogs = (blogs: BlogT[]) => {
-  console.log(blogs);
   const result = _.chain(blogs)
     .countBy((blog) => blog.author)
     .toPairs()
@@ -38,9 +37,23 @@ const mostBlogs = (blogs: BlogT[]) => {
   };
 };
 
+const mostLikes = (blogs: BlogT[]) => {
+  const result = _.chain(blogs)
+    .groupBy("author")
+    .map((authorBlogs, author) => ({
+      author,
+      likes: _.sumBy(authorBlogs, "likes"),
+    }))
+    .maxBy("likes")
+    .value();
+
+  return result;
+};
+
 export default {
   dummy,
   totalLikes,
   favoriteBlog,
   mostBlogs,
+  mostLikes,
 };
