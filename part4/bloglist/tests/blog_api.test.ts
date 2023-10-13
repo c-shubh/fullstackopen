@@ -40,9 +40,10 @@ test("a specific blog is within the returned blogs", async () => {
 });
 
 test("a valid blog can be added", async () => {
-  const newBlog = {
+  const newBlog: CreateBlog = {
     title: "async/await simplifies making async calls",
     author: "Jack",
+    url: "https://example.com",
   };
 
   await api
@@ -107,6 +108,7 @@ test("likes property default to 0 if missing from the request", async () => {
   const blogWithoutLikes: CreateBlog = {
     author: "Jack",
     title: "What is the purpose of life?",
+    url: "https://example.com",
   };
   const response = await api.post("/api/blogs").send(blogWithoutLikes);
   expect(response.body.likes).toBe(0);
@@ -116,9 +118,17 @@ test("new blog created should be returned", async () => {
   const newBlog: CreateBlog = {
     title: "Careful with async JS code",
     author: "Jack",
+    url: "https://example.com",
   };
   const response = await api.post("/api/blogs").send(newBlog);
   expect(response.body).toMatchObject(newBlog);
+});
+
+test("if title or url is missing in request data, respond with 400 Bad Request", async () => {
+  const newBlog = {
+    author: "Jack",
+  };
+  await api.post("/api/blogs").send(newBlog).expect(StatusCodes.BAD_REQUEST);
 });
 
 afterAll(async () => {

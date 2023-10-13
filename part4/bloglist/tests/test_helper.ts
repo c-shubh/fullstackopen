@@ -5,14 +5,17 @@ const initialBlogs: CreateBlog[] = [
   {
     author: "Jack",
     title: "HTTP methods",
+    url: "https://example.com",
   },
   {
     author: "Jill",
     title: "Jill's first post",
+    url: "https://example.com",
   },
   {
     author: "Jake",
     title: "Testing Express.js backend",
+    url: "https://example.com",
   },
 ];
 
