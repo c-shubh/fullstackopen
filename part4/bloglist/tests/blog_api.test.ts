@@ -5,6 +5,7 @@ import supertest from "supertest";
 import app from "../app";
 import Blog from "../models/blog";
 import BlogT from "../types/Blog";
+import CreateBlog from "../types/CreateBlog";
 import helper from "./test_helper";
 
 const api = supertest(app);
@@ -109,6 +110,15 @@ test("likes property default to 0 if missing from the request", async () => {
   };
   const response = await api.post("/api/blogs").send(blogWithoutLikes);
   expect(response.body.likes).toBe(0);
+});
+
+test("new blog created should be returned", async () => {
+  const newBlog: CreateBlog = {
+    title: "Careful with async JS code",
+    author: "Jack",
+  };
+  const response = await api.post("/api/blogs").send(newBlog);
+  expect(response.body).toMatchObject(newBlog);
 });
 
 afterAll(async () => {
