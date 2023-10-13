@@ -14,8 +14,7 @@ blogsRouter.post("/", async (request, response, next) => {
     const blog = await createBlogSchema.validate(request.body);
 
     const newBlog = new Blog(blog);
-    const savedBlog = newBlog.save();
-
+    const savedBlog = await newBlog.save();
     response.status(StatusCodes.CREATED).json(savedBlog);
   } catch (error) {
     next(error);

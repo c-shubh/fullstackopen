@@ -86,20 +86,29 @@ test("a blog can be deleted", async () => {
   const blogsAtStart = await helper.blogsInDb();
   const blogToDelete = blogsAtStart[0];
 
-  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .expect(StatusCodes.NO_CONTENT);
 
   const blogsAtEnd = await helper.blogsInDb();
-
   expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1);
 
   const titles = blogsAtEnd.map((r) => r.title);
-
   expect(titles).not.toContain(blogToDelete.title);
 });
 
 test("unique identifier of blog post is named `id`", async () => {
   const response = await api.get("/api/blogs");
   expect(response.body[0].id).toBeDefined();
+});
+
+test("likes property default to 0 if missing from the request", async () => {
+  const blogWithoutLikes: CreateBlog = {
+    author: "Jack",
+    title: "What is the purpose of life?",
+  };
+  const response = await api.post("/api/blogs").send(blogWithoutLikes);
+  expect(response.body.likes).toBe(0);
 });
 
 afterAll(async () => {
