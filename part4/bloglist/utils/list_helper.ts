@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { BlogT } from "../models/blog";
+import BlogT from "../types/Blog";
 
 const dummy = (blogs: BlogT[]) => {
   blogs;

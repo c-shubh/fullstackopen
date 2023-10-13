@@ -1,17 +1,19 @@
 import mongoose from "mongoose";
-
-export interface BlogT {
-  title: string;
-  author: string;
-  url: string;
-  likes: number;
-}
+import BlogT from "../types/Blog";
 
 const blogSchema = new mongoose.Schema<BlogT>({
   title: String,
   author: String,
   url: String,
   likes: Number,
+});
+
+blogSchema.set("toJSON", {
+  virtuals: true,
+  versionKey: false,
+  transform(doc, ret) {
+    delete ret._id;
+  },
 });
 
 const Blog = mongoose.model("Blog", blogSchema);
