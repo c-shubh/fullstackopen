@@ -8,7 +8,7 @@ import logger from "./utils/logger";
 import middleware from "./utils/middleware";
 
 mongoose.set("strictQuery", false);
-logger.info("connecting to", config.MONGODB_URI);
+logger.info("connecting to MongoDB");
 mongoose
   .connect(config.MONGODB_URI!)
   .then(() => {
