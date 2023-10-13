@@ -97,6 +97,11 @@ test("a blog can be deleted", async () => {
   expect(titles).not.toContain(blogToDelete.title);
 });
 
+test("unique identifier of blog post is named `id`", async () => {
+  const response = await api.get("/api/blogs");
+  expect(response.body[0].id).toBeDefined();
+});
+
 afterAll(async () => {
   await mongoose.connection.close();
 });
