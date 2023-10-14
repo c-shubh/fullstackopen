@@ -6,6 +6,7 @@ import app from "../app";
 import Blog from "../models/blog";
 import BlogT from "../types/Blog";
 import CreateBlog from "../types/CreateBlog";
+import UpdateBlog from "../types/UpdateBlog";
 import helper from "./test_helper";
 
 const api = supertest(app);
@@ -38,6 +39,33 @@ describe("when there is initially some notes saved", () => {
 
     const titles = response.body.map((r: BlogT) => r.title);
     expect(titles).toContain("Testing Express.js backend");
+  });
+
+  test("updating a blog works", async () => {
+    const allBlogs = await helper.blogsInDb();
+    const updatedLikes: UpdateBlog = {
+      ...allBlogs[0],
+      likes: allBlogs[0].likes + 1,
+    };
+
+    const response = await api
+      .put(`/api/blogs/${updatedLikes.id}`)
+      .send(updatedLikes);
+
+    expect(response.body.likes).toBe(updatedLikes.likes);
+  });
+
+  test("updating id of a blog is not allowed", async () => {
+    const allBlogs = await helper.blogsInDb();
+    const updatedId = {
+      ...allBlogs[0],
+      id: "someRandomIdHere",
+    };
+
+    const response = await api
+      .put(`/api/blogs/${allBlogs[0].id}`)
+      .send(updatedId);
+    expect(response.body.id).not.toBe(updatedId.id);
   });
 });
 

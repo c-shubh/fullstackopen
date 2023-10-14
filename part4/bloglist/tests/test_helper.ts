@@ -1,4 +1,5 @@
 import Blog from "../models/blog";
+import BlogT from "../types/Blog";
 import CreateBlog from "../types/CreateBlog";
 
 const initialBlogs: CreateBlog[] = [
@@ -27,7 +28,7 @@ const nonExistingId = async () => {
   return blog._id.toString();
 };
 
-const blogsInDb = async () => {
+const blogsInDb = async (): Promise<BlogT[]> => {
   const blogs = await Blog.find({});
   return blogs.map((blog) => blog.toJSON());
 };

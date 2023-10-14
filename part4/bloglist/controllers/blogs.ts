@@ -2,6 +2,8 @@ import express from "express";
 import { StatusCodes } from "http-status-codes";
 import Blog from "../models/blog";
 import createBlogSchema from "../validation/createBlogSchema";
+import updateBlogSchema from "../validation/updateBlogSchema";
+
 const blogsRouter = express.Router();
 
 blogsRouter.get("/", async (request, response) => {
@@ -38,6 +40,22 @@ blogsRouter.delete("/:id", async (request, response, next) => {
   try {
     await Blog.findByIdAndRemove(request.params.id);
     response.status(204).end();
+  } catch (exception) {
+    next(exception);
+  }
+});
+
+blogsRouter.put("/:id", async (request, response, next) => {
+  const blog = updateBlogSchema.validate(request.body);
+
+  try {
+    const updatedBlog = await Blog.findOneAndUpdate(
+      { _id: request.params.id },
+      blog,
+      { new: true }
+    );
+
+    response.json(updatedBlog);
   } catch (exception) {
     next(exception);
   }
