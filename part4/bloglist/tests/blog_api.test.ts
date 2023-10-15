@@ -20,7 +20,7 @@ beforeEach(async () => {
   await Promise.all(promiseArray);
 });
 
-describe("when there is initially some notes saved", () => {
+describe("when there is initially some blogs saved", () => {
   test("blogs are returned as json", async () => {
     await api
       .get("/api/blogs")
@@ -69,7 +69,7 @@ describe("when there is initially some notes saved", () => {
   });
 });
 
-describe("addition of a new note", () => {
+describe("addition of a new blog", () => {
   test("a valid blog can be added", async () => {
     const newBlog: CreateBlog = {
       title: "async/await simplifies making async calls",
@@ -130,7 +130,7 @@ describe("addition of a new note", () => {
   });
 });
 
-describe("viewing a specific note", () => {
+describe("viewing a specific blog", () => {
   test("a specific blog can be viewed", async () => {
     const blogsAtStart = await helper.blogsInDb();
 
@@ -145,7 +145,7 @@ describe("viewing a specific note", () => {
   });
 });
 
-describe("deletion of a note", () => {
+describe("deletion of a blog", () => {
   test("a blog can be deleted", async () => {
     const blogsAtStart = await helper.blogsInDb();
     const blogToDelete = blogsAtStart[0];

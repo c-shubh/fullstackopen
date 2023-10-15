@@ -1,11 +1,12 @@
-import express from "express";
-const app = express();
 import cors from "cors";
+import express from "express";
 import mongoose from "mongoose";
-import config from "./utils/config";
 import blogsRouter from "./controllers/blogs";
+import usersRouter from "./controllers/users";
+import config from "./utils/config";
 import logger from "./utils/logger";
 import middleware from "./utils/middleware";
+const app = express();
 
 mongoose.set("strictQuery", false);
 logger.info("connecting to MongoDB");
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use(middleware.requestLogger);
 
 app.use("/api/blogs", blogsRouter);
+app.use("/api/users", usersRouter);
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);

@@ -1,14 +1,13 @@
 import mongoose from "mongoose";
-import BlogT from "../types/Blog";
 
-const blogSchema = new mongoose.Schema<BlogT>({
+const blogSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
   },
   author: {
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    required: "User",
   },
   url: {
     type: String,
