@@ -1,7 +1,7 @@
 import express from "express";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/user";
-import UserWithoutId from "../types/UserWithoutId";
+import CreateUserWithoutPasswordWithPasswordHash from "../types/CreateUserWithoutPasswordWithPasswordHash";
 import { hashPassword } from "../utils/auth";
 import createUserSchema from "../validation/createUserSchema";
 
@@ -14,7 +14,7 @@ usersRouter.post("/", async (req, res, next) => {
 
     const passwordHash = await hashPassword(password);
 
-    const userWithPasswordHash: UserWithoutId = {
+    const userWithPasswordHash: CreateUserWithoutPasswordWithPasswordHash = {
       ...userWithoutPassword,
       passwordHash,
     };

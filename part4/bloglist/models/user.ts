@@ -2,7 +2,10 @@ import mongoose from "mongoose";
 import UserT from "../types/User";
 
 const userSchema = new mongoose.Schema<UserT>({
-  username: String,
+  username: {
+    type: String,
+    unique: true,
+  },
   name: String,
   passwordHash: String,
   blogs: [

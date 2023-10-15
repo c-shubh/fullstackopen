@@ -3,7 +3,7 @@ interface User {
   name: string;
   username: string;
   passwordHash: string;
-  blogs?: string[];
+  blogs: string[];
 }
 
 export default User;

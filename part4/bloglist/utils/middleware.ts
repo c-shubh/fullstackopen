@@ -1,37 +1,64 @@
 import { NextFunction, Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import { CastError } from "mongoose";
+import HandleError from "../types/HandleError";
+import MongoServerError from "../types/MongoServerError";
 import logger from "./logger";
 
-const requestLogger = (
-  request: Request,
-  response: Response,
-  next: NextFunction
-) => {
-  logger.info("Method:", request.method);
-  logger.info("Path:  ", request.path);
-  logger.info("Body:  ", request.body);
+const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+  logger.info("Method:", req.method);
+  logger.info("Path:  ", req.path);
+  logger.info("Body:  ", req.body);
   logger.info("---");
   next();
 };
 
-const unknownEndpoint = (request: Request, response: Response) => {
-  response.status(404).send({ error: "unknown endpoint" });
+const unknownEndpoint = (req: Request, res: Response) => {
+  res.status(404).send({ error: "unknown endpoint" });
 };
 
 const errorHandler = (
-  error: { message: any; name: string },
-  request: Request,
-  response: Response,
+  error: unknown,
+  req: Request,
+  res: Response,
   next: NextFunction
 ) => {
-  logger.error(error.message);
+  const err = error as Error;
+  logger.error(err.message);
 
-  if (error.name === "CastError") {
-    return response.status(400).send({ error: "malformatted id" });
-  } else if (error.name === "ValidationError") {
-    return response.status(400).json({ error: error.message });
+  switch (err.name) {
+    case "CastError":
+      handleCastError(req, res, next, error as CastError);
+      break;
+    case "ValidationError":
+      handleValidationError(req, res, next, error as Error);
+      break;
+    case "MongoServerError":
+      handleMongoServerError(req, res, next, error as any);
+      break;
   }
 
-  next(error);
+  next(err);
+};
+
+const handleCastError: HandleError<CastError> = (req, res, next, err) => {
+  return res.status(StatusCodes.BAD_REQUEST).send({ error: "malformatted id" });
+};
+
+const handleValidationError: HandleError<Error> = (req, res, next, err) => {
+  return res.status(StatusCodes.BAD_REQUEST).json({ error: err.message });
+};
+
+const handleMongoServerError: HandleError<MongoServerError> = (
+  req,
+  res,
+  next,
+  err
+) => {
+  if (err.code === MongoServerError.DuplicateKeyError)
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ error: "Invalid username" });
 };
 
 export default {
