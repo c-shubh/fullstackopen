@@ -1,9 +1,10 @@
 import { ObjectSchema, number, object, string } from "yup";
-import UpdateBlog from "../types/UpdateBlog";
+import UpdateBlogFromClient from "../types/UpdateBlogFromClient";
+import populatedUserInBlog from "./populatedUserInBlog";
 
-const updateBlogSchema: ObjectSchema<UpdateBlog> = object({
+const updateBlogSchema: ObjectSchema<UpdateBlogFromClient> = object({
   id: string().required(),
-  author: string().required(),
+  author: populatedUserInBlog,
   title: string().required(),
   likes: number().required(),
   url: string().required(),

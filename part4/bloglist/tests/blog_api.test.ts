@@ -4,18 +4,33 @@ import mongoose from "mongoose";
 import supertest from "supertest";
 import app from "../app";
 import Blog from "../models/blog";
+import User from "../models/user";
 import BlogT from "../types/Blog";
-import CreateBlog from "../types/CreateBlog";
-import UpdateBlog from "../types/UpdateBlog";
+import BlogToClient from "../types/BlogToClient";
+import CreateBlogFromClient from "../types/CreateBlogFromClient";
+import CreateBlogToDb from "../types/CreateBlogToDb";
+import UpdateBlogFromClient from "../types/UpdateBlogFromClient";
 import helper from "./test_helper";
 
 const api = supertest(app);
 const initialBlogs = helper.initialBlogs;
 
 beforeEach(async () => {
+  // clear db
   await Blog.deleteMany({});
+  const user = new User(helper.newUserObject());
+  user.save();
 
-  const blogObjects = helper.initialBlogs.map((blog) => new Blog(blog));
+  const blogsFromClient = helper.initialBlogs;
+  const blogsToDb = blogsFromClient.map((blog) => {
+    const blogToDb: CreateBlogToDb = {
+      ...blog,
+      author: user.id,
+    };
+    return blogToDb;
+  });
+
+  const blogObjects = blogsToDb.map((blog) => new Blog(blog));
   const promiseArray = blogObjects.map((blog) => blog.save());
   await Promise.all(promiseArray);
 });
@@ -43,20 +58,19 @@ describe("when there is initially some blogs saved", () => {
 
   test("updating a blog works", async () => {
     const allBlogs = await helper.blogsInDb();
-    const updatedLikes: UpdateBlog = {
-      ...allBlogs[0],
-      likes: allBlogs[0].likes + 1,
-    };
+    const blogToBeUpdated: UpdateBlogFromClient = allBlogs[0];
+    blogToBeUpdated.likes += 10;
 
     const response = await api
-      .put(`/api/blogs/${updatedLikes.id}`)
-      .send(updatedLikes);
+      .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .send(blogToBeUpdated);
 
-    expect(response.body.likes).toBe(updatedLikes.likes);
+    expect(response.body.likes).toBe(blogToBeUpdated.likes);
   });
 
   test("updating id of a blog is not allowed", async () => {
     const allBlogs = await helper.blogsInDb();
+    allBlogs;
     const updatedId = {
       ...allBlogs[0],
       id: "someRandomIdHere",
@@ -71,9 +85,10 @@ describe("when there is initially some blogs saved", () => {
 
 describe("addition of a new blog", () => {
   test("a valid blog can be added", async () => {
-    const newBlog: CreateBlog = {
+    const user = (await helper.usersInDb())[0];
+    const newBlog: CreateBlogFromClient = {
       title: "async/await simplifies making async calls",
-      author: "Jack",
+      authorId: user.id,
       url: "https://example.com",
     };
 
@@ -110,8 +125,9 @@ describe("addition of a new blog", () => {
   });
 
   test("likes property default to 0 if missing from the request", async () => {
-    const blogWithoutLikes: CreateBlog = {
-      author: "Jack",
+    const user = (await helper.usersInDb())[0];
+    const blogWithoutLikes: CreateBlogFromClient = {
+      authorId: user.id,
       title: "What is the purpose of life?",
       url: "https://example.com",
     };
@@ -120,13 +136,23 @@ describe("addition of a new blog", () => {
   });
 
   test("new blog created should be returned", async () => {
-    const newBlog: CreateBlog = {
+    const user = (await helper.usersInDb())[0];
+    const newBlog: CreateBlogFromClient = {
       title: "Careful with async JS code",
-      author: "Jack",
+      authorId: user.id,
       url: "https://example.com",
     };
+    const { authorId, ...blogWithoutAuthorId } = newBlog;
+    const blogReturned: Partial<BlogToClient> = {
+      author: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+      },
+      ...blogWithoutAuthorId,
+    };
     const response = await api.post("/api/blogs").send(newBlog);
-    expect(response.body).toMatchObject(newBlog);
+    expect(response.body).toMatchObject(blogReturned);
   });
 });
 

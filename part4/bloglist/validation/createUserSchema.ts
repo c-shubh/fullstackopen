@@ -1,7 +1,7 @@
 import { ObjectSchema, object, string } from "yup";
-import CreateUser from "../types/CreateUser";
+import CreateUserFromClient from "../types/CreateUserFromClient";
 
-const createUserSchema: ObjectSchema<CreateUser> = object({
+const createUserSchema: ObjectSchema<CreateUserFromClient> = object({
   name: string().required("Name is required"),
   username: string()
     .min(3, "Username must be at least 3 characters long")
