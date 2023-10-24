@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { Request } from "express";
 import jwt from "jsonwebtoken";
 import JwtPayload from "../types/JwtPayload";
 import config from "./config";
@@ -32,6 +33,14 @@ export function signJwt(payload: string | object | Buffer) {
   return jwt.sign(payload, config.JWT_SECRET!, {
     expiresIn: "7d",
   });
+}
+
+export function getTokenFrom(request: Request) {
+  const authorization = request.get("authorization");
+  if (authorization && authorization.startsWith("Bearer ")) {
+    return authorization.replace("Bearer ", "");
+  }
+  return null;
 }
 
 export function verifyJwt(token: string | null) {

@@ -1,8 +1,9 @@
-import express, { Request } from "express";
+import express from "express";
 import { StatusCodes } from "http-status-codes";
 import Blog from "../models/blog";
 import User from "../models/user";
 import CreateBlogToDb from "../types/CreateBlogToDb";
+import { JwtToken } from "../types/CustomRequestData";
 import PopulatedUserInBlog from "../types/PopulatedUserInBlog";
 import { NumberProperties } from "../types/utils";
 import { verifyJwt } from "../utils/auth";
@@ -10,14 +11,6 @@ import createBlogSchema from "../validation/createBlogSchema";
 import updateBlogSchema from "../validation/updateBlogSchema";
 
 const blogsRouter = express.Router();
-
-function getTokenFrom(request: Request) {
-  const authorization = request.get("authorization");
-  if (authorization && authorization.startsWith("Bearer ")) {
-    return authorization.replace("Bearer ", "");
-  }
-  return null;
-}
 
 const populatedUserFields: NumberProperties<PopulatedUserInBlog> = {
   id: 1,
@@ -35,10 +28,15 @@ blogsRouter.get("/", async (request, response) => {
 });
 
 blogsRouter.post("/", async (req, res, next) => {
+  const customRequestData = req.custom as JwtToken;
+  if (!customRequestData.token) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ error: "Authorization bearer token required" });
+  }
   try {
     // auth check
-    const tokenFromRequest = getTokenFrom(req);
-    const decodedToken = verifyJwt(tokenFromRequest);
+    const decodedToken = verifyJwt(customRequestData.token);
     if (!decodedToken.id) {
       return res
         .status(StatusCodes.UNAUTHORIZED)

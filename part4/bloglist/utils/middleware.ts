@@ -2,8 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { CastError } from "mongoose";
+import { JwtToken } from "../types/CustomRequestData";
 import HandleError from "../types/HandleError";
 import MongoServerError from "../types/MongoServerError";
+import { getTokenFrom } from "./auth";
 import logger from "./logger";
 
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
@@ -16,6 +18,15 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 
 const unknownEndpoint = (req: Request, res: Response) => {
   res.status(StatusCodes.NOT_FOUND).send({ error: "unknown endpoint" });
+};
+
+const tokenExtractor = (req: Request, res: Response, next: NextFunction) => {
+  const tokenFromRequest = getTokenFrom(req);
+  const token: JwtToken = {
+    token: tokenFromRequest,
+  };
+  req.custom = token;
+  next();
 };
 
 const errorHandler = (
@@ -90,4 +101,5 @@ export default {
   requestLogger,
   unknownEndpoint,
   errorHandler,
+  tokenExtractor,
 };
