@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import JwtPayload from "../types/JwtPayload";
 import config from "./config";
 import logger from "./logger";
 
@@ -28,5 +29,12 @@ export async function comparePasswordAndHash(
 }
 
 export function signJwt(payload: string | object | Buffer) {
-  return jwt.sign(payload, config.JWT_SECRET!);
+  return jwt.sign(payload, config.JWT_SECRET!, {
+    expiresIn: "7d",
+  });
+}
+
+export function verifyJwt(token: string | null) {
+  // throws JsonWebTokenError when token is null
+  return jwt.verify(token!, config.JWT_SECRET!) as JwtPayload;
 }

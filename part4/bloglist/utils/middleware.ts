@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { CastError } from "mongoose";
 import HandleError from "../types/HandleError";
 import MongoServerError from "../types/MongoServerError";
@@ -36,6 +37,12 @@ const errorHandler = (
     case "MongoServerError":
       handleMongoServerError(req, res, next, error as any);
       break;
+    case "JsonWebTokenError":
+      handleJsonWebTokenError(req, res, next, error as JsonWebTokenError);
+      break;
+    case "TokenExpiredError":
+      handleTokenExpiredError(req, res, next, error as TokenExpiredError);
+      break;
   }
 
   next(err);
@@ -59,6 +66,24 @@ const handleMongoServerError: HandleError<MongoServerError> = (
     return res
       .status(StatusCodes.BAD_REQUEST)
       .json({ error: "Invalid username" });
+};
+
+const handleJsonWebTokenError: HandleError<JsonWebTokenError> = (
+  req,
+  res,
+  next,
+  err
+) => {
+  return res.status(StatusCodes.UNAUTHORIZED).json({ error: err.message });
+};
+
+const handleTokenExpiredError: HandleError<TokenExpiredError> = (
+  req,
+  res,
+  next,
+  err
+) => {
+  return res.status(StatusCodes.UNAUTHORIZED).json({ error: "token expired" });
 };
 
 export default {

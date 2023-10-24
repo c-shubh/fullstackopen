@@ -1,14 +1,23 @@
-import express from "express";
+import express, { Request } from "express";
 import { StatusCodes } from "http-status-codes";
 import Blog from "../models/blog";
 import User from "../models/user";
 import CreateBlogToDb from "../types/CreateBlogToDb";
 import PopulatedUserInBlog from "../types/PopulatedUserInBlog";
 import { NumberProperties } from "../types/utils";
+import { verifyJwt } from "../utils/auth";
 import createBlogSchema from "../validation/createBlogSchema";
 import updateBlogSchema from "../validation/updateBlogSchema";
 
 const blogsRouter = express.Router();
+
+function getTokenFrom(request: Request) {
+  const authorization = request.get("authorization");
+  if (authorization && authorization.startsWith("Bearer ")) {
+    return authorization.replace("Bearer ", "");
+  }
+  return null;
+}
 
 const populatedUserFields: NumberProperties<PopulatedUserInBlog> = {
   id: 1,
@@ -25,12 +34,26 @@ blogsRouter.get("/", async (request, response) => {
   response.json(blogs);
 });
 
-blogsRouter.post("/", async (request, response, next) => {
+blogsRouter.post("/", async (req, res, next) => {
   try {
+    // auth check
+    const tokenFromRequest = getTokenFrom(req);
+    const decodedToken = verifyJwt(tokenFromRequest);
+    if (!decodedToken.id) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ error: "token invalid" });
+    }
+
     // validation
-    const blog = await createBlogSchema.validate(request.body);
+    const blog = await createBlogSchema.validate(req.body);
+    if (blog.authorId !== decodedToken.id) {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        error: "Invalid authorId (does not match with logged in user)",
+      });
+    }
     // find author
-    const user = await User.findById(blog.authorId);
+    const user = await User.findById(decodedToken.id);
     if (!user) throw new Error(`Author with id ${blog.authorId} not found`);
     // add author id to blog
     const { authorId, ...blogWithoutAuthorId } = blog;
@@ -49,7 +72,7 @@ blogsRouter.post("/", async (request, response, next) => {
     // add blog id to author
     user.blogs = user.blogs.concat(populated.id);
     await user.save();
-    response.status(StatusCodes.CREATED).json(populated);
+    res.status(StatusCodes.CREATED).json(populated);
   } catch (error) {
     next(error);
   }
