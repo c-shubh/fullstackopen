@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
 import blogsRouter from "./controllers/blogs";
+import loginRouter from "./controllers/login";
 import usersRouter from "./controllers/users";
 import config from "./utils/config";
 import logger from "./utils/logger";
@@ -24,6 +25,7 @@ app.use(express.static("build"));
 app.use(express.json());
 app.use(middleware.requestLogger);
 
+app.use("/api/login", loginRouter);
 app.use("/api/blogs", blogsRouter);
 app.use("/api/users", usersRouter);
 

@@ -1,4 +1,6 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import config from "./config";
 import logger from "./logger";
 
 export async function hashPassword(password: string): Promise<string> {
@@ -23,4 +25,8 @@ export async function comparePasswordAndHash(
     logger.error("Error while comparing password and hash:", error);
     throw new Error("Password comparison failed");
   }
+}
+
+export function signJwt(payload: string | object | Buffer) {
+  return jwt.sign(payload, config.JWT_SECRET!);
 }

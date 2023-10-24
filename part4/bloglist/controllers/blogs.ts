@@ -65,7 +65,7 @@ blogsRouter.get("/:id", async (request, response, next) => {
     if (blog) {
       response.json(blog);
     } else {
-      response.status(404).end();
+      response.status(StatusCodes.NOT_FOUND).end();
     }
   } catch (exception) {
     next(exception);
@@ -75,7 +75,7 @@ blogsRouter.get("/:id", async (request, response, next) => {
 blogsRouter.delete("/:id", async (request, response, next) => {
   try {
     await Blog.findByIdAndRemove(request.params.id);
-    response.status(204).end();
+    response.status(StatusCodes.NO_CONTENT).end();
   } catch (exception) {
     next(exception);
   }
