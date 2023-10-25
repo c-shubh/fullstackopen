@@ -93,10 +93,34 @@ blogsRouter.get("/:id", async (request, response, next) => {
   }
 });
 
-blogsRouter.delete("/:id", async (request, response, next) => {
+blogsRouter.delete("/:id", async (req, res, next) => {
+  const customRequestData = req.custom as JwtToken;
+  if (!customRequestData.token) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ error: "Authorization bearer token required" });
+  }
   try {
-    await Blog.findByIdAndRemove(request.params.id);
-    response.status(StatusCodes.NO_CONTENT).end();
+    const decodedToken = verifyJwt(customRequestData.token);
+    if (!decodedToken.id) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ error: "token invalid" });
+    }
+    // get the blog
+    const blogToDelete = await Blog.findById(req.params.id);
+    if (!blogToDelete) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: "Blog does not exist" });
+    }
+    if (blogToDelete.author.toString() !== decodedToken.id) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ error: "You're not authorized to delete this blog." });
+    }
+    await Blog.findByIdAndRemove(req.params.id);
+    res.status(StatusCodes.NO_CONTENT).end();
   } catch (exception) {
     next(exception);
   }
