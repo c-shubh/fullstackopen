@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, test } from "@jest/globals";
+import { afterAll, beforeEach, expect, test } from "@jest/globals";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import supertest from "supertest";

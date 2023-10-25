@@ -17,7 +17,7 @@ usersRouter.get("/", async (req, res) => {
     url: 1,
   };
   const users = await User.find({}).populate("blogs", populatedBlogFields);
-  res.json(users);
+  return res.json(users);
 });
 
 usersRouter.post("/", async (req, res, next) => {
@@ -35,7 +35,7 @@ usersRouter.post("/", async (req, res, next) => {
     const newUser = new User(userWithPasswordHash);
     const savedUser = await newUser.save();
 
-    res.status(StatusCodes.CREATED).json(savedUser);
+    return res.status(StatusCodes.CREATED).json(savedUser);
   } catch (exception) {
     next(exception);
   }

@@ -35,8 +35,8 @@ export function signJwt(payload: string | object | Buffer) {
   });
 }
 
-export function getTokenFrom(request: Request) {
-  const authorization = request.get("authorization");
+export function getTokenFrom(req: Request) {
+  const authorization = req.get("authorization");
   if (authorization && authorization.startsWith("Bearer ")) {
     return authorization.replace("Bearer ", "");
   }

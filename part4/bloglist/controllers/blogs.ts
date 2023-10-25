@@ -3,10 +3,10 @@ import { StatusCodes } from "http-status-codes";
 import Blog from "../models/blog";
 import User from "../models/user";
 import CreateBlogToDb from "../types/CreateBlogToDb";
-import { JwtToken } from "../types/CustomRequestData";
+import { User as UserInRequest } from "../types/CustomRequestData";
 import PopulatedUserInBlog from "../types/PopulatedUserInBlog";
 import { NumberProperties } from "../types/utils";
-import { verifyJwt } from "../utils/auth";
+import middleware from "../utils/middleware";
 import createBlogSchema from "../validation/createBlogSchema";
 import updateBlogSchema from "../validation/updateBlogSchema";
 
@@ -18,40 +18,26 @@ const populatedUserFields: NumberProperties<PopulatedUserInBlog> = {
   username: 1,
 };
 
-blogsRouter.get("/", async (request, response) => {
+blogsRouter.get("/", async (req, res) => {
   const blogs = await Blog.find({}).populate(
     "author",
     populatedUserFields,
     User
   );
-  response.json(blogs);
+  return res.json(blogs);
 });
 
-blogsRouter.post("/", async (req, res, next) => {
-  const customRequestData = req.custom as JwtToken;
-  if (!customRequestData.token) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ error: "Authorization bearer token required" });
-  }
+blogsRouter.post("/", middleware.userExtractor, async (req, res, next) => {
+  const customRequestData = req.custom as UserInRequest;
   try {
-    // auth check
-    const decodedToken = verifyJwt(customRequestData.token);
-    if (!decodedToken.id) {
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({ error: "token invalid" });
-    }
-
     // validation
     const blog = await createBlogSchema.validate(req.body);
-    if (blog.authorId !== decodedToken.id) {
-      res.status(StatusCodes.BAD_REQUEST).json({
+    if (blog.authorId !== customRequestData.user.id) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
         error: "Invalid authorId (does not match with logged in user)",
       });
     }
-    // find author
-    const user = await User.findById(decodedToken.id);
+    const user = customRequestData.user;
     if (!user) throw new Error(`Author with id ${blog.authorId} not found`);
     // add author id to blog
     const { authorId, ...blogWithoutAuthorId } = blog;
@@ -70,43 +56,32 @@ blogsRouter.post("/", async (req, res, next) => {
     // add blog id to author
     user.blogs = user.blogs.concat(populated.id);
     await user.save();
-    res.status(StatusCodes.CREATED).json(populated);
+    return res.status(StatusCodes.CREATED).json(populated);
   } catch (error) {
     next(error);
   }
 });
 
-blogsRouter.get("/:id", async (request, response, next) => {
+blogsRouter.get("/:id", async (req, res, next) => {
   try {
-    const blog = await Blog.findById(request.params.id).populate(
+    const blog = await Blog.findById(req.params.id).populate(
       "author",
       populatedUserFields,
       User
     );
     if (blog) {
-      response.json(blog);
+      return res.json(blog);
     } else {
-      response.status(StatusCodes.NOT_FOUND).end();
+      return res.status(StatusCodes.NOT_FOUND).end();
     }
   } catch (exception) {
     next(exception);
   }
 });
 
-blogsRouter.delete("/:id", async (req, res, next) => {
-  const customRequestData = req.custom as JwtToken;
-  if (!customRequestData.token) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ error: "Authorization bearer token required" });
-  }
+blogsRouter.delete("/:id", middleware.userExtractor, async (req, res, next) => {
+  const customRequestData = req.custom as UserInRequest;
   try {
-    const decodedToken = verifyJwt(customRequestData.token);
-    if (!decodedToken.id) {
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({ error: "token invalid" });
-    }
     // get the blog
     const blogToDelete = await Blog.findById(req.params.id);
     if (!blogToDelete) {
@@ -114,20 +89,20 @@ blogsRouter.delete("/:id", async (req, res, next) => {
         .status(StatusCodes.NOT_FOUND)
         .json({ error: "Blog does not exist" });
     }
-    if (blogToDelete.author.toString() !== decodedToken.id) {
+    if (blogToDelete.author.toString() !== customRequestData.user.id) {
       return res
         .status(StatusCodes.UNAUTHORIZED)
         .json({ error: "You're not authorized to delete this blog." });
     }
     await Blog.findByIdAndRemove(req.params.id);
-    res.status(StatusCodes.NO_CONTENT).end();
+    return res.status(StatusCodes.NO_CONTENT).end();
   } catch (exception) {
     next(exception);
   }
 });
 
-blogsRouter.put("/:id", async (request, response, next) => {
-  const blog = await updateBlogSchema.validate(request.body);
+blogsRouter.put("/:id", async (req, res, next) => {
+  const blog = await updateBlogSchema.validate(req.body);
   // the blog sent by user contains populated author,
   const { author, ...blogWithoutAuthor } = blog;
   // replace populated author to author id
@@ -138,12 +113,12 @@ blogsRouter.put("/:id", async (request, response, next) => {
 
   try {
     const updatedBlog = await Blog.findOneAndUpdate(
-      { _id: request.params.id },
+      { _id: req.params.id },
       blogToUpdate,
       { new: true }
     ).populate("author", populatedUserFields, User);
 
-    response.json(updatedBlog);
+    return res.json(updatedBlog);
   } catch (exception) {
     next(exception);
   }

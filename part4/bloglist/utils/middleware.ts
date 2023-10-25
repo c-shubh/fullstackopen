@@ -2,10 +2,11 @@ import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { CastError } from "mongoose";
-import { JwtToken } from "../types/CustomRequestData";
+import User from "../models/user";
+import { JwtToken, User as UserInRequest } from "../types/CustomRequestData";
 import HandleError from "../types/HandleError";
 import MongoServerError from "../types/MongoServerError";
-import { getTokenFrom } from "./auth";
+import { getTokenFrom, verifyJwt } from "./auth";
 import logger from "./logger";
 
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
@@ -17,7 +18,7 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const unknownEndpoint = (req: Request, res: Response) => {
-  res.status(StatusCodes.NOT_FOUND).send({ error: "unknown endpoint" });
+  return res.status(StatusCodes.NOT_FOUND).send({ error: "unknown endpoint" });
 };
 
 const tokenExtractor = (req: Request, res: Response, next: NextFunction) => {
@@ -26,6 +27,47 @@ const tokenExtractor = (req: Request, res: Response, next: NextFunction) => {
     token: tokenFromRequest,
   };
   req.custom = token;
+  next();
+};
+
+const userExtractor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // get the token
+  const customRequestData = req.custom as JwtToken;
+  if (!customRequestData.token) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ error: "Authorization bearer token required" });
+  }
+  // get user id
+  const decodedToken = verifyJwt(customRequestData.token);
+  if (!decodedToken.id) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ error: "Token invalid" });
+  }
+  // get user
+  const user = await User.findById(decodedToken.id);
+  // if user not found
+  if (user === null) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      error: "Invalid user",
+    });
+  }
+
+  const userToPutInRequest: UserInRequest = {
+    user: user,
+  };
+
+  // user found
+  req.custom = {
+    ...customRequestData,
+    ...userToPutInRequest,
+  };
+
   next();
 };
 
@@ -102,4 +144,5 @@ export default {
   unknownEndpoint,
   errorHandler,
   tokenExtractor,
+  userExtractor,
 };
