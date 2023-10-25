@@ -1,6 +1,7 @@
 import express from "express";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/user";
+import JwtPayload from "../types/JwtPayload";
 import { comparePasswordAndHash, signJwt } from "../utils/auth";
 import loginUserSchema from "../validation/loginUserSchema";
 
@@ -24,7 +25,7 @@ loginRouter.post("/", async (req, res, next) => {
       });
     }
 
-    const userForToken = {
+    const userForToken: JwtPayload = {
       username: user.username,
       id: user.id,
     };

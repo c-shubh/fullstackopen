@@ -4,10 +4,12 @@ import User from "../models/user";
 import BlogToClient from "../types/BlogToClient";
 import CreateBlogFromClient from "../types/CreateBlogFromClient";
 import CreateUserFromClient from "../types/CreateUserFromClient";
+import JwtPayload from "../types/JwtPayload";
 import PopulatedBlogInUser from "../types/PopulatedBlogInUser";
 import PopulatedUserInBlog from "../types/PopulatedUserInBlog";
 import UserToClient from "../types/UserToClient";
 import { NumberProperties } from "../types/utils";
+import { signJwt } from "../utils/auth";
 
 // set authorId after creating a user
 const initialBlogs: Omit<CreateBlogFromClient, "authorId">[] = [
@@ -72,6 +74,9 @@ const newUserObject = (): CreateUserFromClient => ({
   password: faker.internet.password(),
 });
 
+const authorizationHeaderBody = (userForToken: JwtPayload): string =>
+  `Bearer ${signJwt(userForToken)}`;
+
 export default {
   initialBlogs,
   nonExistingId,
@@ -79,4 +84,5 @@ export default {
   usersInDb,
   initialUsers,
   newUserObject,
+  authorizationHeaderBody,
 };

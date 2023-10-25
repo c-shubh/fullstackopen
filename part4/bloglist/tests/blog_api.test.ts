@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, expect, test } from "@jest/globals";
+import { afterAll, beforeEach, describe, expect, test } from "@jest/globals";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import supertest from "supertest";
@@ -9,6 +9,7 @@ import BlogT from "../types/Blog";
 import BlogToClient from "../types/BlogToClient";
 import CreateBlogFromClient from "../types/CreateBlogFromClient";
 import CreateBlogToDb from "../types/CreateBlogToDb";
+import JwtPayload from "../types/JwtPayload";
 import UpdateBlogFromClient from "../types/UpdateBlogFromClient";
 import helper from "./test_helper";
 
@@ -18,8 +19,9 @@ const initialBlogs = helper.initialBlogs;
 beforeEach(async () => {
   // clear db
   await Blog.deleteMany({});
+  await User.deleteMany({});
   const user = new User(helper.newUserObject());
-  user.save();
+  await user.save();
 
   const blogsFromClient = helper.initialBlogs;
   const blogsToDb = blogsFromClient.map((blog) => {
@@ -33,7 +35,7 @@ beforeEach(async () => {
   const blogObjects = blogsToDb.map((blog) => new Blog(blog));
   const promiseArray = blogObjects.map((blog) => blog.save());
   await Promise.all(promiseArray);
-});
+}, 5 * 1000);
 
 describe("when there is initially some blogs saved", () => {
   test("blogs are returned as json", async () => {
@@ -92,8 +94,14 @@ describe("addition of a new blog", () => {
       url: "https://example.com",
     };
 
+    const userForToken: JwtPayload = {
+      username: user.username,
+      id: user.id,
+    };
+
     await api
       .post("/api/blogs")
+      .set("Authorization", helper.authorizationHeaderBody(userForToken))
       .send(newBlog)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -110,7 +118,18 @@ describe("addition of a new blog", () => {
       author: "Jack",
     };
 
-    await api.post("/api/blogs").send(blog).expect(StatusCodes.BAD_REQUEST);
+    const user = (await helper.usersInDb())[0];
+
+    const userForToken: JwtPayload = {
+      username: user.username,
+      id: user.id,
+    };
+
+    await api
+      .post("/api/blogs")
+      .set("Authorization", helper.authorizationHeaderBody(userForToken))
+      .send(blog)
+      .expect(StatusCodes.BAD_REQUEST);
 
     const blogsAtEnd = await helper.blogsInDb();
 
@@ -121,7 +140,19 @@ describe("addition of a new blog", () => {
     const newBlog = {
       author: "Jack",
     };
-    await api.post("/api/blogs").send(newBlog).expect(StatusCodes.BAD_REQUEST);
+
+    const user = (await helper.usersInDb())[0];
+
+    const userForToken: JwtPayload = {
+      username: user.username,
+      id: user.id,
+    };
+
+    await api
+      .post("/api/blogs")
+      .set("Authorization", helper.authorizationHeaderBody(userForToken))
+      .send(newBlog)
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   test("likes property default to 0 if missing from the request", async () => {
@@ -131,7 +162,16 @@ describe("addition of a new blog", () => {
       title: "What is the purpose of life?",
       url: "https://example.com",
     };
-    const response = await api.post("/api/blogs").send(blogWithoutLikes);
+
+    const userForToken: JwtPayload = {
+      username: user.username,
+      id: user.id,
+    };
+
+    const response = await api
+      .post("/api/blogs")
+      .set("Authorization", helper.authorizationHeaderBody(userForToken))
+      .send(blogWithoutLikes);
     expect(response.body.likes).toBe(0);
   });
 
@@ -151,7 +191,16 @@ describe("addition of a new blog", () => {
       },
       ...blogWithoutAuthorId,
     };
-    const response = await api.post("/api/blogs").send(newBlog);
+
+    const userForToken: JwtPayload = {
+      username: user.username,
+      id: user.id,
+    };
+
+    const response = await api
+      .post("/api/blogs")
+      .set("Authorization", helper.authorizationHeaderBody(userForToken))
+      .send(newBlog);
     expect(response.body).toMatchObject(blogReturned);
   });
 });
@@ -176,8 +225,16 @@ describe("deletion of a blog", () => {
     const blogsAtStart = await helper.blogsInDb();
     const blogToDelete = blogsAtStart[0];
 
+    const user = (await helper.usersInDb())[0];
+
+    const userForToken: JwtPayload = {
+      id: user.id,
+      username: user.username,
+    };
+
     await api
       .delete(`/api/blogs/${blogToDelete.id}`)
+      .set("Authorization", helper.authorizationHeaderBody(userForToken))
       .expect(StatusCodes.NO_CONTENT);
 
     const blogsAtEnd = await helper.blogsInDb();

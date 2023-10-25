@@ -36,7 +36,7 @@ export function signJwt(payload: string | object | Buffer) {
 }
 
 export function getTokenFrom(req: Request) {
-  const authorization = req.get("authorization");
+  const authorization = req.get("Authorization");
   if (authorization && authorization.startsWith("Bearer ")) {
     return authorization.replace("Bearer ", "");
   }
